@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression, Lasso
 from sklearn.neural_network import MLPRegressor
 from sklearn.ensemble import StackingRegressor
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.preprocessing import LabelEncoder
 
 # 1. Đọc và tiền xử lý dữ liệu
@@ -34,6 +34,7 @@ y_pred_linear = linear_model.predict(X_test)
 r2_linear = r2_score(y_test, y_pred_linear)
 mse_linear = mean_squared_error(y_test, y_pred_linear)
 rmse_linear = np.sqrt(mse_linear)
+mae_linear = mean_absolute_error(y_test, y_pred_linear)
 
 # 2.2 Lasso Regression
 lasso_model = Lasso(alpha=0.1)
@@ -42,6 +43,7 @@ y_pred_lasso = lasso_model.predict(X_test)
 r2_lasso = r2_score(y_test, y_pred_lasso)
 mse_lasso = mean_squared_error(y_test, y_pred_lasso)
 rmse_lasso = np.sqrt(mse_lasso)
+mae_lasso = mean_absolute_error(y_test, y_pred_lasso)
 
 # 2.3 Neural Network - MLPRegressor
 mlp_model = MLPRegressor(hidden_layer_sizes=(50, 50, 50), max_iter=500, random_state=42)
@@ -50,6 +52,8 @@ y_pred_mlp = mlp_model.predict(X_test)
 r2_mlp = r2_score(y_test, y_pred_mlp)
 mse_mlp = mean_squared_error(y_test, y_pred_mlp)
 rmse_mlp = np.sqrt(mse_mlp)
+mae_mlp = mean_absolute_error(y_test, y_pred_mlp)
+
 # Tạo mô hình Stacking từ các mô hình hồi quy trước đó
 estimators = [
     ('linear', linear_model),
@@ -65,6 +69,7 @@ y_pred_stacking = stacking_model.predict(X_test)
 r2_stacking = r2_score(y_test, y_pred_stacking)
 mse_stacking = mean_squared_error(y_test, y_pred_stacking)
 rmse_stacking = np.sqrt(mse_stacking)
+mae_stacking = mean_absolute_error(y_test, y_pred_stacking)
 
 # 3. Giao diện Streamlit
 st.title("Dự đoán kết quả học tập")
@@ -95,27 +100,31 @@ if st.button("Dự đoán"):
         r2 = r2_linear
         mse = mse_linear
         rmse = rmse_linear
+        mae = mae_linear
     elif model_choice == "Lasso Regression":
         prediction = lasso_model.predict(features)[0]
         r2 = r2_lasso
         mse = mse_lasso
         rmse = rmse_lasso
+        mae = mae_lasso
     elif model_choice == "Neural Network":
         prediction = mlp_model.predict(features)[0]
         r2 = r2_mlp
         mse = mse_mlp
         rmse = rmse_mlp
+        mae = mae_mlp
     else:
         prediction = stacking_model.predict(features)[0]
         r2 = r2_stacking
         mse = mse_stacking
         rmse = rmse_stacking
+        mae = mae_stacking
 
     # Hiển thị kết quả dự đoán
     st.subheader("Kết quả dự đoán:")
     st.write(f"Phương pháp: {model_choice}")
     st.write(f"Dự đoán: {prediction:.2f}")
-    st.write(f"R²: {r2:.2f}, MSE: {mse:.2f}, RMSE: {rmse:.2f}")
+    st.write(f"R²: {r2:.2f}, MSE: {mse:.2f}, RMSE: {rmse:.2f},  MAE: {mae:.2f}")
 
     # Vẽ biểu đồ so sánh giá trị thực và dự đoán
     y_test_pred = stacking_model.predict(X_test) if model_choice == "Stacking" else None
