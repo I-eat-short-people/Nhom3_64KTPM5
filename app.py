@@ -127,12 +127,23 @@ if st.button("Dự đoán"):
     st.write(f"R²: {r2:.2f}, MSE: {mse:.2f}, RMSE: {rmse:.2f},  MAE: {mae:.2f}")
 
     # Vẽ biểu đồ so sánh giá trị thực và dự đoán
-    y_test_pred = stacking_model.predict(X_test) if model_choice == "Stacking" else None
-    if y_test_pred is not None:
-        fig, ax = plt.subplots()
-        ax.scatter(y_test, y_test_pred, edgecolors=(0, 0, 0))
-        ax.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], 'k--', lw=2)
-        ax.set_xlabel('Giá trị thực tế')
-        ax.set_ylabel('Giá trị dự đoán')
-        ax.set_title(f'So sánh giá trị thực tế và dự đoán - {model_choice}')
-        st.pyplot(fig)
+    if model_choice == "Linear Regression":
+        y_test_pred = linear_model.predict(X_test)
+    elif model_choice == "Lasso Regression":
+        y_test_pred = lasso_model.predict(X_test)
+    elif model_choice == "Neural Network":
+        y_test_pred = mlp_model.predict(X_test)
+    else:
+        y_test_pred = stacking_model.predict(X_test)
+
+    # Vẽ biểu đồ
+    fig, ax = plt.subplots()
+    ax.scatter(y_test, y_test_pred, edgecolors=(0, 0, 0))
+    ax.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], 'k--', lw=2)
+    ax.set_xlabel('Giá trị thực tế')
+    ax.set_ylabel('Giá trị dự đoán')
+    ax.set_title(f'So sánh giá trị thực tế và dự đoán - {model_choice}')
+
+    # Hiển thị biểu đồ trên Streamlit
+    plt.tight_layout()
+    st.pyplot(fig)
