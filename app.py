@@ -94,11 +94,11 @@ st.title("Dự đoán kết quả học tập")
 sex = st.selectbox("Giới tính", ("Nam", "Nữ"))
 studytime = st.slider("Thời gian học tập (1-4)", 1, 4, 2)
 failures = st.slider("Số lần trượt môn", 0, 3, 0)
-absences = st.slider("Số buổi vắng học", 0, 93, 5)
+absences = st.slider("Số buổi nghỉ học", 0, 93, 5)
 freetime = st.slider("Thời gian rảnh (1-5)", 1, 5, 3)
 nursery = st.selectbox("Có đi học thêm không", ("Có", "Không"))
-g1 = st.slider("Điểm kiểm Tra lần 1", 0, 10)
-g2 = st.slider("Điểm kiểm tra lần 2", 0, 10)
+g1 = st.slider("Điểm kiểm Tra lần 1", 0, 20)
+g2 = st.slider("Điểm kiểm tra lần 2", 0, 20)
 
 # Chuyển đổi giới tính và nursery
 sex = 1 if sex == "Nam" else 0
