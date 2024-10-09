@@ -5,28 +5,24 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression, Lasso
 from sklearn.neural_network import MLPRegressor
-from sklearn.ensemble import StackingRegressor, RandomForestRegressor
+from sklearn.ensemble import StackingRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
 
 # 1. Đọc và tiền xử lý dữ liệu
 df = pd.read_csv('student-mat.csv', sep=';')
 
 # Chỉ lấy các cột cần thiết 
-df = df[['sex', 'studytime', 'failures', 'freetime', 'G1', 'G2', 'G3', 'guardian', 'paid']]
+df = df[['sex', 'studytime', 'failures', 'freetime', 'G1', 'G2', 'G3']]
 
-# Biến đổi cột 'sex' và 'guardian' thành nhãn số (Label Encoding)
+# Biến đổi cột 'sex' thành nhãn số (Label Encoding)
 le = LabelEncoder()
 df['sex'] = le.fit_transform(df['sex'])
-df['guardian'] = le.fit_transform(df['guardian'])
-df['paid'] = le.fit_transform(df['paid'])
-
-# Tính điểm trung bình
-df['average_score'] = df[['G1', 'G2']].mean(axis=1)
 
 # Tách biến đầu vào và biến mục tiêu
-X = df[['sex', 'studytime', 'failures', 'freetime', 'average_score', 'guardian', 'paid']]
+X = df[['sex', 'studytime', 'failures', 'freetime', 'G1', 'G2']]
 y = df['G3']
 
 # Chia dữ liệu thành tập train và test
@@ -48,16 +44,21 @@ rmse_linear = np.sqrt(mse_linear)
 mae_linear = mean_absolute_error(y_test, y_pred_linear)
 
 # 2.2 Lasso Regression
-lasso_model = Lasso(alpha=0.1)
-lasso_model.fit(X_train_scaled, y_train)
-y_pred_lasso = lasso_model.predict(X_test_scaled)
+lasso = Lasso()
+param_grid = {'alpha': [0.01, 0.1, 1, 10]}
+grid_search = GridSearchCV(lasso, param_grid, cv=5)
+grid_search.fit(X_train_scaled, y_train)
+
+# Mô hình Lasso tốt nhất
+best_lasso = grid_search.best_estimator_
+y_pred_lasso = best_lasso.predict(X_test_scaled)
 r2_lasso = r2_score(y_test, y_pred_lasso)
 mse_lasso = mean_squared_error(y_test, y_pred_lasso)
 rmse_lasso = np.sqrt(mse_lasso)
 mae_lasso = mean_absolute_error(y_test, y_pred_lasso)
 
 # 2.3 Neural Network - MLPRegressor
-mlp_model = MLPRegressor(hidden_layer_sizes=(100, 100, 100), max_iter=1000, random_state=42)
+mlp_model = MLPRegressor(hidden_layer_sizes=(100, 100), max_iter=1000, random_state=42)
 mlp_model.fit(X_train_scaled, y_train)
 y_pred_mlp = mlp_model.predict(X_test_scaled)
 r2_mlp = r2_score(y_test, y_pred_mlp)
@@ -65,10 +66,10 @@ mse_mlp = mean_squared_error(y_test, y_pred_mlp)
 rmse_mlp = np.sqrt(mse_mlp)
 mae_mlp = mean_absolute_error(y_test, y_pred_mlp)
 
-# Tạo mô hình Stacking từ các mô hình hồi quy trước đó
+# Tạo mô hình Stacking từ các mô hình hồi quy trước đó (base models)
 estimators = [
     ('linear', linear_model),
-    ('lasso', lasso_model),
+    ('lasso', best_lasso),
     ('mlp', mlp_model)
 ]
 stacking_model = StackingRegressor(estimators=estimators, final_estimator=RandomForestRegressor())
@@ -89,18 +90,11 @@ sex = st.selectbox("Giới tính", ("Nam", "Nữ"))
 studytime = st.slider("Thời gian học tập (1-4)", 1, 4, 2)
 failures = st.slider("Số lần trượt môn", 0, 3, 0)
 freetime = st.slider("Thời gian rảnh (1-5)", 1, 5, 3)
-guardian = st.selectbox("Người giám hộ", ("Mother", "Father", "Other"))
-paid = st.selectbox("Tham gia lớp học trả phí", ("Yes", "No"))
-g1 = st.slider("Điểm kiểm tra lần 1", 0, 10)
-g2 = st.slider("Điểm kiểm tra lần 2", 0, 10)
+g1 = st.slider("Điểm kiểm tra lần 1", 0, 20)
+g2 = st.slider("Điểm kiểm tra lần 2", 0, 20)
 
-# Chuyển đổi giới tính và các thông tin khác
+# Chuyển đổi giới tính
 sex = 1 if sex == "Nam" else 0
-guardian = le.transform([guardian])[0]
-paid = le.transform([paid])[0]
-
-# Tính điểm trung bình
-average_score = (g1 + g2) / 2
 
 # Lựa chọn mô hình dự đoán
 model_choice = st.selectbox("Chọn phương pháp dự đoán", ("Linear Regression", "Lasso Regression", "Neural Network", "Stacking"))
@@ -108,29 +102,30 @@ model_choice = st.selectbox("Chọn phương pháp dự đoán", ("Linear Regres
 # Khi người dùng nhấn nút "Dự đoán"
 if st.button("Dự đoán"):
     # Chuẩn bị dữ liệu để dự đoán
-    features = np.array([[sex, studytime, failures, freetime, average_score, guardian, paid]])
+    features = np.array([[sex, studytime, failures, freetime, g1, g2]])
+    features_scaled = scaler.transform(features)  # Chuẩn hóa dữ liệu đầu vào
 
     # Dự đoán dựa trên mô hình đã chọn
     if model_choice == "Linear Regression":
-        prediction = linear_model.predict(scaler.transform(features))[0]
+        prediction = linear_model.predict(features_scaled)[0]
         r2 = r2_linear
         mse = mse_linear
         rmse = rmse_linear
         mae = mae_linear
     elif model_choice == "Lasso Regression":
-        prediction = lasso_model.predict(scaler.transform(features))[0]
+        prediction = best_lasso.predict(features_scaled)[0]
         r2 = r2_lasso
         mse = mse_lasso
         rmse = rmse_lasso
         mae = mae_lasso
     elif model_choice == "Neural Network":
-        prediction = mlp_model.predict(scaler.transform(features))[0]
+        prediction = mlp_model.predict(features_scaled)[0]
         r2 = r2_mlp
         mse = mse_mlp
         rmse = rmse_mlp
         mae = mae_mlp
     else:
-        prediction = stacking_model.predict(scaler.transform(features))[0]
+        prediction = stacking_model.predict(features_scaled)[0]
         r2 = r2_stacking
         mse = mse_stacking
         rmse = rmse_stacking
@@ -140,13 +135,13 @@ if st.button("Dự đoán"):
     st.subheader("Kết quả dự đoán:")
     st.write(f"Phương pháp: {model_choice}")
     st.write(f"Dự đoán: {prediction:.2f}")
-    st.write(f"R²: {r2:.2f}, MSE: {mse:.2f}, RMSE: {rmse:.2f},  MAE: {mae:.2f}")
+    st.write(f"R²: {r2:.2f}, MSE: {mse:.2f}, RMSE: {rmse:.2f}, MAE: {mae:.2f}")
 
     # Vẽ biểu đồ so sánh giá trị thực và dự đoán
     if model_choice == "Linear Regression":
         y_test_pred = linear_model.predict(X_test_scaled)
     elif model_choice == "Lasso Regression":
-        y_test_pred = lasso_model.predict(X_test_scaled)
+        y_test_pred = best_lasso.predict(X_test_scaled)
     elif model_choice == "Neural Network":
         y_test_pred = mlp_model.predict(X_test_scaled)
     else:
