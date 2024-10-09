@@ -48,9 +48,10 @@ y_pred_linear_test = linear_model.predict(X_test_scaled)
 r2_linear_train = r2_score(y_train, y_pred_linear_train)
 r2_linear_val = r2_score(y_val, y_pred_linear_val)  # R² cho tập xác thực
 r2_linear_test = r2_score(y_test, y_pred_linear_test)
-mse_linear_val = mean_squared_error(y_val, y_pred_linear_val)  # MSE cho tập xác thực
-rmse_linear_val = np.sqrt(mse_linear_val)
-mae_linear_val = mean_absolute_error(y_val, y_pred_linear_val)
+# Tính MSE, RMSE, MAE cho tập kiểm tra
+mse_linear_test = mean_squared_error(y_test, y_pred_linear_test)
+rmse_linear_test = np.sqrt(mse_linear_test)
+mae_linear_test = mean_absolute_error(y_test, y_pred_linear_test)
 
 # 2.2 Lasso Regression
 lasso_model = Lasso()
@@ -63,13 +64,16 @@ y_pred_lasso_train = best_lasso.predict(X_train_scaled)
 y_pred_lasso_val = best_lasso.predict(X_val_scaled)  # Dự đoán trên tập xác thực
 y_pred_lasso_test = best_lasso.predict(X_test_scaled)
 
+
 # Tính toán các chỉ số cho Lasso Regression
 r2_lasso_train = r2_score(y_train, y_pred_lasso_train)
-r2_lasso_val = r2_score(y_val, y_pred_lasso_val)  # R² cho tập xác thực
+r2_lasso_val = r2_score(y_val, y_pred_lasso_val)
 r2_lasso_test = r2_score(y_test, y_pred_lasso_test)
-mse_lasso_val = mean_squared_error(y_val, y_pred_lasso_val)  # MSE cho tập xác thực
-rmse_lasso_val = np.sqrt(mse_lasso_val)
-mae_lasso_val = mean_absolute_error(y_val, y_pred_lasso_val)
+
+# Tính MSE, RMSE, MAE cho tập kiểm tra
+mse_lasso_test = mean_squared_error(y_test, y_pred_lasso_test)
+rmse_lasso_test = np.sqrt(mse_lasso_test)
+mae_lasso_test = mean_absolute_error(y_test, y_pred_lasso_test)
 
 # 2.3 Neural Network - MLPRegressor
 mlp_model = MLPRegressor(hidden_layer_sizes=(50, 50, 50), max_iter=1000, random_state=42, learning_rate='adaptive', alpha=0.0001)
@@ -80,11 +84,14 @@ y_pred_mlp_test = mlp_model.predict(X_test_scaled)
 
 # Tính toán các chỉ số cho Neural Network
 r2_mlp_train = r2_score(y_train, y_pred_mlp_train)
-r2_mlp_val = r2_score(y_val, y_pred_mlp_val)  # R² cho tập xác thực
+r2_mlp_val = r2_score(y_val, y_pred_mlp_val)
 r2_mlp_test = r2_score(y_test, y_pred_mlp_test)
-mse_mlp_val = mean_squared_error(y_val, y_pred_mlp_val)  # MSE cho tập xác thực
-rmse_mlp_val = np.sqrt(mse_mlp_val)
-mae_mlp_val = mean_absolute_error(y_val, y_pred_mlp_val)
+
+# Tính MSE, RMSE, MAE cho tập kiểm tra
+mse_mlp_test = mean_squared_error(y_test, y_pred_mlp_test)
+rmse_mlp_test = np.sqrt(mse_mlp_test)
+mae_mlp_test = mean_absolute_error(y_test, y_pred_mlp_test)
+
 
 # Tạo mô hình Stacking từ các mô hình hồi quy trước đó (base models)
 estimators = [
@@ -103,11 +110,13 @@ y_pred_stacking_test = stacking_model.predict(X_test_scaled)
 
 # Tính toán các chỉ số cho Stacking
 r2_stacking_train = r2_score(y_train, y_pred_stacking_train)
-r2_stacking_val = r2_score(y_val, y_pred_stacking_val)  # R² cho tập xác thực
+r2_stacking_val = r2_score(y_val, y_pred_stacking_val)
 r2_stacking_test = r2_score(y_test, y_pred_stacking_test)
-mse_stacking_val = mean_squared_error(y_val, y_pred_stacking_val)  # MSE cho tập xác thực
-rmse_stacking_val = np.sqrt(mse_stacking_val)
-mae_stacking_val = mean_absolute_error(y_val, y_pred_stacking_val)
+
+# Tính MSE, RMSE, MAE cho tập kiểm tra
+mse_stacking_test = mean_squared_error(y_test, y_pred_stacking_test)
+rmse_stacking_test = np.sqrt(mse_stacking_test)
+mae_stacking_test = mean_absolute_error(y_test, y_pred_stacking_test)
 
 # 3. Giao diện Streamlit
 st.title("Dự đoán kết quả học tập")
@@ -162,9 +171,11 @@ if st.button("Dự đoán"):
         mae = mae_stacking_test
 
     # Hiển thị kết quả dự đoán
-    st.subheader(f"Kết quả dự đoán: {prediction:.2f}")
+    st.subheader("Kết quả dự đoán:")
+    st.write(f"Phương pháp: {model_choice}")
+    st.write(f"Dự đoán: {prediction:.2f}")
     st.write(f"R²: {r2:.2f}, MSE: {mse:.2f}, RMSE: {rmse:.2f}, MAE: {mae:.2f}")
-
+    
     # Biểu đồ so sánh giá trị thực và dự đoán trên tập huấn luyện
     fig_train, ax_train = plt.subplots()
     ax_train.scatter(y_train, y_pred_linear_train, label='Linear Regression', edgecolors='k')
