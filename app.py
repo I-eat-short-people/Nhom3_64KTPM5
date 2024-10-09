@@ -112,6 +112,7 @@ if st.button("Dự đoán"):
     st.subheader("Kết quả dự đoán:")
     st.write(f"Phương pháp: {model_choice}")
     st.write(f"Dự đoán: {prediction:.2f}")
+    st.write(f"R²: {r2:.2f}, MSE: {mse:.2f}, RMSE: {rmse:.2f},  MAE: {mae:.2f}")
 
     # Vẽ biểu đồ cho tập huấn luyện
     fig_train, ax_train = plt.subplots()
