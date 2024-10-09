@@ -174,7 +174,36 @@ if st.button("Dự đoán"):
     st.subheader("Kết quả dự đoán:")
     st.write(f"Phương pháp: {model_choice}")
     st.write(f"Dự đoán: {prediction:.2f}")
-    st.write(f"R²: {r2:.2f}, MSE: {mse:.2f}, RMSE: {rmse:.2f}, MAE: {mae:.2f}")
+    # Hiển thị các chỉ số hiệu suất của mô hình đã chọn
+    st.subheader("Các chỉ số hiệu suất trên tập kiểm tra:")
+
+    # Hiển thị các chỉ số hiệu suất cho Linear Regression
+    if model_choice == "Linear Regression":
+        st.write(f"R²: {r2_linear_test:.2f}")
+        st.write(f"MSE: {mse_linear_test:.2f}")
+        st.write(f"RMSE: {rmse_linear_test:.2f}")
+        st.write(f"MAE: {mae_linear_test:.2f}")
+
+    # Hiển thị các chỉ số hiệu suất cho Lasso Regression
+    elif model_choice == "Lasso Regression":
+        st.write(f"R²: {r2_lasso_test:.2f}")
+        st.write(f"MSE: {mse_lasso_test:.2f}")
+        st.write(f"RMSE: {rmse_lasso_test:.2f}")
+        st.write(f"MAE: {mae_lasso_test:.2f}")
+
+    # Hiển thị các chỉ số hiệu suất cho Neural Network
+    elif model_choice == "Neural Network":
+        st.write(f"R²: {r2_mlp_test:.2f}")
+        st.write(f"MSE: {mse_mlp_test:.2f}")
+        st.write(f"RMSE: {rmse_mlp_test:.2f}")
+        st.write(f"MAE: {mae_mlp_test:.2f}")
+
+    # Hiển thị các chỉ số hiệu suất cho Stacking
+    else:
+        st.write(f"R²: {r2_stacking_test:.2f}")
+        st.write(f"MSE: {mse_stacking_test:.2f}")
+        st.write(f"RMSE: {rmse_stacking_test:.2f}")
+        st.write(f"MAE: {mae_stacking_test:.2f}")
     
     # Biểu đồ so sánh giá trị thực và dự đoán trên tập huấn luyện
     fig_train, ax_train = plt.subplots()
@@ -214,5 +243,6 @@ if st.button("Dự đoán"):
     ax_test.set_title('So sánh giá trị thực tế và dự đoán - Tập kiểm tra')
     ax_test.legend()
     st.pyplot(fig_test)
+
 
 
