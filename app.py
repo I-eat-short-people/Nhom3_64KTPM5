@@ -10,7 +10,6 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
-from sklearn.preprocessing import PolynomialFeatures
 
 # 1. Đọc và tiền xử lý dữ liệu
 df = pd.read_csv('student-mat.csv', sep=';')
@@ -41,22 +40,43 @@ linear_model = LinearRegression()
 linear_model.fit(X_train_scaled, y_train)
 y_pred_linear_train = linear_model.predict(X_train_scaled)  # Dự đoán trên tập huấn luyện
 y_pred_linear_test = linear_model.predict(X_test_scaled)    # Dự đoán trên tập kiểm tra
-r2_linear_train = r2_score(y_train, y_pred_linear_train)  # Tính toán R² cho tập huấn luyện
-r2_linear_test = r2_score(y_test, y_pred_linear_test)      # Tính toán R² cho tập kiểm tra
+
+# Tính toán các chỉ số cho Linear Regression
+r2_linear_train = r2_score(y_train, y_pred_linear_train)
+r2_linear_test = r2_score(y_test, y_pred_linear_test)
 mse_linear_test = mean_squared_error(y_test, y_pred_linear_test)
 rmse_linear_test = np.sqrt(mse_linear_test)
 mae_linear_test = mean_absolute_error(y_test, y_pred_linear_test)
 
 # 2.2 Lasso Regression
+lasso_model = Lasso()
 param_grid = {'alpha': [0.001, 0.01, 0.1, 1, 10]}
-grid_search = GridSearchCV(Lasso(), param_grid, cv=5)
+grid_search = GridSearchCV(lasso_model, param_grid, cv=5)
 grid_search.fit(X_train_scaled, y_train)
 
 best_lasso = grid_search.best_estimator_
+y_pred_lasso_train = best_lasso.predict(X_train_scaled)  # Dự đoán trên tập huấn luyện
+y_pred_lasso_test = best_lasso.predict(X_test_scaled)    # Dự đoán trên tập kiểm tra
+
+# Tính toán các chỉ số cho Lasso Regression
+r2_lasso_train = r2_score(y_train, y_pred_lasso_train)
+r2_lasso_test = r2_score(y_test, y_pred_lasso_test)
+mse_lasso_test = mean_squared_error(y_test, y_pred_lasso_test)
+rmse_lasso_test = np.sqrt(mse_lasso_test)
+mae_lasso_test = mean_absolute_error(y_test, y_pred_lasso_test)
 
 # 2.3 Neural Network - MLPRegressor
 mlp_model = MLPRegressor(hidden_layer_sizes=(50, 50, 50), max_iter=1000, random_state=42, learning_rate='adaptive', alpha=0.0001)
 mlp_model.fit(X_train_scaled, y_train)
+y_pred_mlp_train = mlp_model.predict(X_train_scaled)  # Dự đoán trên tập huấn luyện
+y_pred_mlp_test = mlp_model.predict(X_test_scaled)    # Dự đoán trên tập kiểm tra
+
+# Tính toán các chỉ số cho Neural Network
+r2_mlp_train = r2_score(y_train, y_pred_mlp_train)
+r2_mlp_test = r2_score(y_test, y_pred_mlp_test)
+mse_mlp_test = mean_squared_error(y_test, y_pred_mlp_test)
+rmse_mlp_test = np.sqrt(mse_mlp_test)
+mae_mlp_test = mean_absolute_error(y_test, y_pred_mlp_test)
 
 # Tạo mô hình Stacking từ các mô hình hồi quy trước đó (base models)
 estimators = [
@@ -69,9 +89,15 @@ stacking_model = StackingRegressor(estimators=estimators, final_estimator=Random
 stacking_model.fit(X_train_scaled, y_train)
 
 # Dự đoán cho tập kiểm tra với các mô hình
-y_pred_lasso_test = best_lasso.predict(X_test_scaled)
-y_pred_mlp_test = mlp_model.predict(X_test_scaled)
-y_pred_stacking_test = stacking_model.predict(X_test_scaled)
+y_pred_stacking_train = stacking_model.predict(X_train_scaled)  # Dự đoán trên tập huấn luyện
+y_pred_stacking_test = stacking_model.predict(X_test_scaled)    # Dự đoán trên tập kiểm tra
+
+# Tính toán các chỉ số cho Stacking
+r2_stacking_train = r2_score(y_train, y_pred_stacking_train)
+r2_stacking_test = r2_score(y_test, y_pred_stacking_test)
+mse_stacking_test = mean_squared_error(y_test, y_pred_stacking_test)
+rmse_stacking_test = np.sqrt(mse_stacking_test)
+mae_stacking_test = mean_absolute_error(y_test, y_pred_stacking_test)
 
 # 3. Giao diện Streamlit
 st.title("Dự đoán kết quả học tập")
@@ -108,60 +134,54 @@ if st.button("Dự đoán"):
         mae = mae_linear_test
     elif model_choice == "Lasso Regression":
         prediction = best_lasso.predict(features_scaled)[0]
-        r2 = r2_linear_test  # Sử dụng các chỉ số từ Linear Regression
-        mse = mean_squared_error(y_test, y_pred_lasso_test)
-        rmse = np.sqrt(mse)
-        mae = mean_absolute_error(y_test, y_pred_lasso_test)
+        r2 = r2_lasso_test
+        mse = mse_lasso_test
+        rmse = rmse_lasso_test
+        mae = mae_lasso_test
     elif model_choice == "Neural Network":
         prediction = mlp_model.predict(features_scaled)[0]
-        r2 = r2_linear_test  # Sử dụng các chỉ số từ Linear Regression
-        mse = mean_squared_error(y_test, y_pred_mlp_test)
-        rmse = np.sqrt(mse)
-        mae = mean_absolute_error(y_test, y_pred_mlp_test)
+        r2 = r2_mlp_test
+        mse = mse_mlp_test
+        rmse = rmse_mlp_test
+        mae = mae_mlp_test
     else:
         prediction = stacking_model.predict(features_scaled)[0]
-        r2 = r2_linear_test  # Sử dụng các chỉ số từ Linear Regression
-        mse = mean_squared_error(y_test, y_pred_stacking_test)
-        rmse = np.sqrt(mse)
-        mae = mean_absolute_error(y_test, y_pred_stacking_test)
+        r2 = r2_stacking_test
+        mse = mse_stacking_test
+        rmse = rmse_stacking_test
+        mae = mae_stacking_test
 
     # Hiển thị kết quả dự đoán
-    st.subheader("Kết quả dự đoán:")
-    st.write(f"Phương pháp: {model_choice}")
-    st.write(f"Dự đoán: {prediction:.2f}")
+    st.subheader(f"Kết quả dự đoán: {prediction:.2f}")
     st.write(f"R²: {r2:.2f}, MSE: {mse:.2f}, RMSE: {rmse:.2f}, MAE: {mae:.2f}")
 
-    # Vẽ biểu đồ cho tập huấn luyện
+    # Biểu đồ so sánh giá trị thực và dự đoán trên tập huấn luyện
     fig_train, ax_train = plt.subplots()
-    ax_train.scatter(y_train, y_pred_linear_train, edgecolors=(0, 0, 0))
+    ax_train.scatter(y_train, y_pred_linear_train, edgecolors=(0, 0, 0), label='Linear Regression')
+    ax_train.scatter(y_train, y_pred_lasso_train, edgecolors=(0, 0, 0), label='Lasso Regression')
+    ax_train.scatter(y_train, y_pred_mlp_train, edgecolors=(0, 0, 0), label='Neural Network')
+    ax_train.scatter(y_train, y_pred_stacking_train, edgecolors=(0, 0, 0), label='Stacking')
     ax_train.plot([min(y_train), max(y_train)], [min(y_train), max(y_train)], 'k--', lw=2)
     ax_train.set_xlabel('Giá trị thực tế (Tập huấn luyện)')
     ax_train.set_ylabel('Giá trị dự đoán (Tập huấn luyện)')
     ax_train.set_title('So sánh giá trị thực tế và dự đoán - Tập huấn luyện')
+    ax_train.legend()
 
     st.subheader("Biểu đồ Tập Huấn Luyện")
     plt.tight_layout()
     st.pyplot(fig_train)
 
-    # Vẽ biểu đồ cho tập xác thực
-    fig_val, ax_val = plt.subplots()
-    ax_val.scatter(y_test, y_pred_linear_test, edgecolors=(0, 0, 0))
-    ax_val.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], 'k--', lw=2)
-    ax_val.set_xlabel('Giá trị thực tế (Tập xác thực)')
-    ax_val.set_ylabel('Giá trị dự đoán (Tập xác thực)')
-    ax_val.set_title('So sánh giá trị thực tế và dự đoán - Tập xác thực')
-
-    st.subheader("Biểu đồ Tập Xác Thực")
-    plt.tight_layout()
-    st.pyplot(fig_val)
-
-    # Vẽ biểu đồ cho tập kiểm tra
+    # Biểu đồ so sánh giá trị thực và dự đoán trên tập kiểm tra
     fig_test, ax_test = plt.subplots()
-    ax_test.scatter(y_test, y_pred_linear_test, edgecolors=(0, 0, 0))
+    ax_test.scatter(y_test, y_pred_linear_test, edgecolors=(0, 0, 0), label='Linear Regression')
+    ax_test.scatter(y_test, y_pred_lasso_test, edgecolors=(0, 0, 0), label='Lasso Regression')
+    ax_test.scatter(y_test, y_pred_mlp_test, edgecolors=(0, 0, 0), label='Neural Network')
+    ax_test.scatter(y_test, y_pred_stacking_test, edgecolors=(0, 0, 0), label='Stacking')
     ax_test.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], 'k--', lw=2)
     ax_test.set_xlabel('Giá trị thực tế (Tập kiểm tra)')
     ax_test.set_ylabel('Giá trị dự đoán (Tập kiểm tra)')
     ax_test.set_title('So sánh giá trị thực tế và dự đoán - Tập kiểm tra')
+    ax_test.legend()
 
     st.subheader("Biểu đồ Tập Kiểm Tra")
     plt.tight_layout()
