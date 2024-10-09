@@ -41,10 +41,11 @@ linear_model = LinearRegression()
 linear_model.fit(X_train_scaled, y_train)
 y_pred_linear_train = linear_model.predict(X_train_scaled)  # Dự đoán trên tập huấn luyện
 y_pred_linear_test = linear_model.predict(X_test_scaled)    # Dự đoán trên tập kiểm tra
-r2_linear = r2_score(y_test, y_pred_linear_test)
-mse_linear = mean_squared_error(y_test, y_pred_linear_test)
-rmse_linear = np.sqrt(mse_linear)
-mae_linear = mean_absolute_error(y_test, y_pred_linear_test)
+r2_linear_train = r2_score(y_train, y_pred_linear_train)  # Tính toán R² cho tập huấn luyện
+r2_linear_test = r2_score(y_test, y_pred_linear_test)      # Tính toán R² cho tập kiểm tra
+mse_linear_test = mean_squared_error(y_test, y_pred_linear_test)
+rmse_linear_test = np.sqrt(mse_linear_test)
+mae_linear_test = mean_absolute_error(y_test, y_pred_linear_test)
 
 # 2.2 Lasso Regression
 param_grid = {'alpha': [0.001, 0.01, 0.1, 1, 10]}
@@ -101,18 +102,34 @@ if st.button("Dự đoán"):
     # Dự đoán dựa trên mô hình đã chọn
     if model_choice == "Linear Regression":
         prediction = linear_model.predict(features_scaled)[0]
+        r2 = r2_linear_test
+        mse = mse_linear_test
+        rmse = rmse_linear_test
+        mae = mae_linear_test
     elif model_choice == "Lasso Regression":
         prediction = best_lasso.predict(features_scaled)[0]
+        r2 = r2_linear_test  # Sử dụng các chỉ số từ Linear Regression
+        mse = mean_squared_error(y_test, y_pred_lasso_test)
+        rmse = np.sqrt(mse)
+        mae = mean_absolute_error(y_test, y_pred_lasso_test)
     elif model_choice == "Neural Network":
         prediction = mlp_model.predict(features_scaled)[0]
+        r2 = r2_linear_test  # Sử dụng các chỉ số từ Linear Regression
+        mse = mean_squared_error(y_test, y_pred_mlp_test)
+        rmse = np.sqrt(mse)
+        mae = mean_absolute_error(y_test, y_pred_mlp_test)
     else:
         prediction = stacking_model.predict(features_scaled)[0]
+        r2 = r2_linear_test  # Sử dụng các chỉ số từ Linear Regression
+        mse = mean_squared_error(y_test, y_pred_stacking_test)
+        rmse = np.sqrt(mse)
+        mae = mean_absolute_error(y_test, y_pred_stacking_test)
 
     # Hiển thị kết quả dự đoán
     st.subheader("Kết quả dự đoán:")
     st.write(f"Phương pháp: {model_choice}")
     st.write(f"Dự đoán: {prediction:.2f}")
-    st.write(f"R²: {r2:.2f}, MSE: {mse:.2f}, RMSE: {rmse:.2f},  MAE: {mae:.2f}")
+    st.write(f"R²: {r2:.2f}, MSE: {mse:.2f}, RMSE: {rmse:.2f}, MAE: {mae:.2f}")
 
     # Vẽ biểu đồ cho tập huấn luyện
     fig_train, ax_train = plt.subplots()
